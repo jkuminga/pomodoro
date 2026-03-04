@@ -1,0 +1,15 @@
+
+> pomodoro@0.0.0 test
+> vitest run -t pomodoroMachine
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/Users/dohyeonjik/Desktop/Projects/pomodoro/apps/pomodoro[39m
+
+ [2m[90m↓[39m[22m src/smoke.test.ts [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+ [32m✓[39m src/lib/pomodoroMachine.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (2)[39m
+[2m      Tests [22m [1m[32m15 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (16)[39m
+[2m   Start at [22m 20:36:25
+[2m   Duration [22m 1.05s[2m (transform 95ms, setup 238ms, import 66ms, tests 3ms, environment 1.52s)[22m
+
