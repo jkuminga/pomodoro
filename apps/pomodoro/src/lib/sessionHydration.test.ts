@@ -7,6 +7,7 @@ describe('sessionHydration', () => {
     focusMinutes: 25,
     breakMinutes: 5,
     roundsTarget: 4,
+    autoStart: false,
   };
 
   it('should return initial session if snapshot is null (hydrate)', () => {

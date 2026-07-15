@@ -24,13 +24,14 @@ export function loadSettings(): Settings | null {
     if (!raw) return null;
     const data = JSON.parse(raw) as StorageData;
     if (data && data.settings && typeof data.settings === 'object') {
-      const { focusMinutes, breakMinutes, roundsTarget } = data.settings;
+      const { focusMinutes, breakMinutes, roundsTarget, autoStart } = data.settings;
       if (
         typeof focusMinutes === 'number' &&
         typeof breakMinutes === 'number' &&
-        typeof roundsTarget === 'number'
+        typeof roundsTarget === 'number' &&
+        typeof autoStart === 'boolean'
       ) {
-        return { focusMinutes, breakMinutes, roundsTarget };
+        return { focusMinutes, breakMinutes, roundsTarget, autoStart };
       }
     }
   } catch (e) {

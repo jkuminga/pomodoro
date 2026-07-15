@@ -13,6 +13,7 @@ describe('pomodoroMachine', () => {
     focusMinutes: 25,
     breakMinutes: 5,
     roundsTarget: 4,
+    autoStart: false,
   };
 
   const initialSession: Session = {

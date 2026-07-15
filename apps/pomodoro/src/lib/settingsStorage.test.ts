@@ -13,6 +13,7 @@ describe('settingsStorage', () => {
       focusMinutes: 30,
       breakMinutes: 10,
       roundsTarget: 5,
+      autoStart: false,
     };
 
     saveSettings(settings);
@@ -27,6 +28,7 @@ describe('settingsStorage', () => {
       focusMinutes: 30,
       breakMinutes: 10,
       roundsTarget: 5,
+      autoStart: false,
     };
     saveSettings(settings);
 
@@ -47,6 +49,7 @@ describe('settingsStorage', () => {
       focusMinutes: 30,
       breakMinutes: 10,
       roundsTarget: 5,
+      autoStart: false,
     };
     saveSettings(settings);
 
