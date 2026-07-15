@@ -5,6 +5,7 @@ export interface Settings {
   focusMinutes: number;
   breakMinutes: number;
   roundsTarget: number;
+  autoStart: boolean;
 }
 
 export interface Session {
@@ -44,6 +45,7 @@ export function clampAndValidateSettings(input: Partial<Settings>): {
     focusMinutes: isNaN(focusVal) ? 25 : Math.max(1, Math.min(180, focusVal)),
     breakMinutes: isNaN(breakVal) ? 5 : Math.max(1, Math.min(60, breakVal)),
     roundsTarget: isNaN(roundsVal) ? 4 : Math.max(1, Math.min(12, roundsVal)),
+    autoStart: input.autoStart ?? false,
   };
 
   if (isNaN(focusVal)) {
@@ -127,14 +129,26 @@ export function pomodoroReducer(
     }
 
     case 'SKIP': {
-      return advanceBoundary(session, settings);
+      const next = advanceBoundary(session, settings);
+      if (settings.autoStart && next.status === 'paused' && next.pausedRemainingMs !== undefined) {
+        next.status = 'running';
+        next.endAtEpochMs = action.nowMs + next.pausedRemainingMs;
+        next.pausedRemainingMs = undefined;
+      }
+      return next;
     }
 
     case 'TICK': {
       if (session.status !== 'running') return session;
       const remaining = getRemainingMs(session, settings, action.nowMs);
       if (remaining === 0) {
-        return advanceBoundary(session, settings);
+        const next = advanceBoundary(session, settings);
+        if (settings.autoStart && next.status === 'paused' && next.pausedRemainingMs !== undefined) {
+          next.status = 'running';
+          next.endAtEpochMs = action.nowMs + next.pausedRemainingMs;
+          next.pausedRemainingMs = undefined;
+        }
+        return next;
       }
       return session;
     }

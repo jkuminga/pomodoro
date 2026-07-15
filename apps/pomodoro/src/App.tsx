@@ -15,35 +15,41 @@ import {
   clearSession,
 } from './lib/settingsStorage'
 import { hydrateSession } from './lib/sessionHydration'
+import beepSound from './assets/freesound_community-start-sound-beep-102201.mp3'
 
 const DEFAULT_SETTINGS: Settings = {
   focusMinutes: 25,
   breakMinutes: 5,
   roundsTarget: 4,
+  autoStart: false,
 }
 
 function App() {
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const initialSettings = useMemo(() => loadSettings() || DEFAULT_SETTINGS, [])
   const [focusInput, setFocusInput] = useState(initialSettings.focusMinutes.toString())
   const [breakInput, setBreakInput] = useState(initialSettings.breakMinutes.toString())
   const [roundsInput, setRoundsInput] = useState(initialSettings.roundsTarget.toString())
+  const [autoStartInput, setAutoStartInput] = useState(initialSettings.autoStart ?? false)
 
   const { settings: effectiveSettings, errors } = useMemo(() => {
     return clampAndValidateSettings({
       focusMinutes: parseInt(focusInput.trim(), 10),
       breakMinutes: parseInt(breakInput.trim(), 10),
       roundsTarget: parseInt(roundsInput.trim(), 10),
+      autoStart: autoStartInput,
     })
-  }, [focusInput, breakInput, roundsInput])
+  }, [focusInput, breakInput, roundsInput, autoStartInput])
 
   const hasErrors = Object.keys(errors).length > 0
   const [lastValidSettings, setLastValidSettings] = useState<Settings>(initialSettings)
 
-  const maybeUpdateLastValidSettings = (nextFocus: string, nextBreak: string, nextRounds: string) => {
+  const maybeUpdateLastValidSettings = (nextFocus: string, nextBreak: string, nextRounds: string, nextAutoStart: boolean) => {
     const next = clampAndValidateSettings({
       focusMinutes: parseInt(nextFocus.trim(), 10),
       breakMinutes: parseInt(nextBreak.trim(), 10),
       roundsTarget: parseInt(nextRounds.trim(), 10),
+      autoStart: nextAutoStart,
     })
 
     if (Object.keys(next.errors).length === 0) {
@@ -89,9 +95,7 @@ function App() {
       (prev.status !== 'completed' && session.status === 'completed')
 
     if (boundaryChanged && audioEnabledRef.current && !skipFlagRef.current) {
-      new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg')
-        .play()
-        .catch(() => {})
+      new Audio(beepSound).play().catch(() => {})
     }
 
     skipFlagRef.current = false
@@ -151,7 +155,7 @@ function App() {
       : 'Time for a break!'
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${isFullscreen ? 'fullscreen-mode' : ''}`}>
       <header className="header">
         <h1>Pomodoro</h1>
         <span className="status-text">{statusText}</span>
@@ -161,6 +165,30 @@ function App() {
         className={`timer-card ${isFocus ? 'isFocus' : 'isBreak'}`}
         aria-label="Timer"
       >
+        <button 
+          className="fullscreen-toggle" 
+          onClick={() => setIsFullscreen(prev => !prev)}
+          aria-label="Toggle fullscreen"
+          title="Toggle fullscreen"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+            {isFullscreen ? (
+              <>
+                <polyline points="4 14 10 14 10 20"></polyline>
+                <polyline points="20 10 14 10 14 4"></polyline>
+                <line x1="14" y1="10" x2="21" y2="3"></line>
+                <line x1="3" y1="21" x2="10" y2="14"></line>
+              </>
+            ) : (
+              <>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <polyline points="9 21 3 21 3 15"></polyline>
+                <line x1="21" y1="3" x2="14" y2="10"></line>
+                <line x1="3" y1="21" x2="10" y2="14"></line>
+              </>
+            )}
+          </svg>
+        </button>
         <span className="phase-label">
           {isFocus ? 'Focus' : 'Break'}
         </span>
@@ -227,7 +255,7 @@ function App() {
             onChange={(e) => {
               const v = e.target.value
               setFocusInput(v)
-              maybeUpdateLastValidSettings(v, breakInput, roundsInput)
+              maybeUpdateLastValidSettings(v, breakInput, roundsInput, autoStartInput)
             }}
           />
           {errors.focusMinutes && <span className="error-text">{errors.focusMinutes}</span>}
@@ -242,7 +270,7 @@ function App() {
             onChange={(e) => {
               const v = e.target.value
               setBreakInput(v)
-              maybeUpdateLastValidSettings(focusInput, v, roundsInput)
+              maybeUpdateLastValidSettings(focusInput, v, roundsInput, autoStartInput)
             }}
           />
           {errors.breakMinutes && <span className="error-text">{errors.breakMinutes}</span>}
@@ -257,11 +285,37 @@ function App() {
             onChange={(e) => {
               const v = e.target.value
               setRoundsInput(v)
-              maybeUpdateLastValidSettings(focusInput, breakInput, v)
+              maybeUpdateLastValidSettings(focusInput, breakInput, v, autoStartInput)
             }}
           />
           {errors.roundsTarget && <span className="error-text">{errors.roundsTarget}</span>}
           <span className="helper-text">Standard is 4</span>
+        </div>
+        <div className="setting-group">
+          <label>Auto-Start</label>
+          <div className="pill-toggle">
+            <button 
+              type="button"
+              className={`pill-btn ${autoStartInput === true ? 'active' : ''}`}
+              onClick={() => {
+                setAutoStartInput(true)
+                maybeUpdateLastValidSettings(focusInput, breakInput, roundsInput, true)
+              }}
+            >
+              On
+            </button>
+            <button 
+              type="button"
+              className={`pill-btn ${autoStartInput === false ? 'active' : ''}`}
+              onClick={() => {
+                setAutoStartInput(false)
+                maybeUpdateLastValidSettings(focusInput, breakInput, roundsInput, false)
+              }}
+            >
+              Off
+            </button>
+          </div>
+          <span className="helper-text">Start next phase automatically</span>
         </div>
       </section>
     </div>
