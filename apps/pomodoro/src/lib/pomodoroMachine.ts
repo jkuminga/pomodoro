@@ -22,6 +22,7 @@ export type PomodoroAction =
   | { type: 'RESUME'; nowMs: number }
   | { type: 'RESET' }
   | { type: 'SKIP'; nowMs: number }
+  | { type: 'PREVIOUS'; nowMs: number }
   | { type: 'TICK'; nowMs: number };
 
 export function formatMsToMMSS(ms: number): string {
@@ -138,6 +139,16 @@ export function pomodoroReducer(
       return next;
     }
 
+    case 'PREVIOUS': {
+      const next = rewindBoundary(session, settings);
+      if (settings.autoStart && next.status === 'paused' && next.pausedRemainingMs !== undefined) {
+        next.status = 'running';
+        next.endAtEpochMs = action.nowMs + next.pausedRemainingMs;
+        next.pausedRemainingMs = undefined;
+      }
+      return next;
+    }
+
     case 'TICK': {
       if (session.status !== 'running') return session;
       const remaining = getRemainingMs(session, settings, action.nowMs);
@@ -184,5 +195,36 @@ function advanceBoundary(session: Session, settings: Settings): Session {
       endAtEpochMs: undefined,
       pausedRemainingMs: settings.focusMinutes * 60 * 1000,
     };
+  }
+}
+
+function rewindBoundary(session: Session, settings: Settings): Session {
+  if (session.phase === 'break') {
+    return {
+      ...session,
+      phase: 'focus',
+      status: 'paused',
+      endAtEpochMs: undefined,
+      pausedRemainingMs: settings.focusMinutes * 60 * 1000,
+    };
+  } else {
+    if (session.roundIndex <= 1) {
+      return {
+        phase: 'focus',
+        roundIndex: 1,
+        status: 'idle',
+        endAtEpochMs: undefined,
+        pausedRemainingMs: undefined,
+      };
+    } else {
+      return {
+        ...session,
+        phase: 'break',
+        roundIndex: session.roundIndex - 1,
+        status: 'paused',
+        endAtEpochMs: undefined,
+        pausedRemainingMs: settings.breakMinutes * 60 * 1000,
+      };
+    }
   }
 }

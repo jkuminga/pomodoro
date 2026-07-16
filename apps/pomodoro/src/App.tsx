@@ -143,6 +143,13 @@ function App() {
     dispatch({ type: 'SKIP', nowMs: currentNow })
   }
 
+  const handlePrevious = () => {
+    skipFlagRef.current = true
+    const currentNow = Date.now()
+    setNow(currentNow)
+    dispatch({ type: 'PREVIOUS', nowMs: currentNow })
+  }
+
   const displaySettings = hasErrors ? lastValidSettings : effectiveSettings
   const remainingMs = getRemainingMs(session, displaySettings, now)
   const timeDisplay = formatMsToMMSS(remainingMs)
@@ -233,6 +240,14 @@ function App() {
             aria-label="Reset timer"
           >
             Reset
+          </button>
+          <button 
+            className="btn btn-secondary" 
+            onClick={handlePrevious}
+            disabled={session.phase === 'focus' && session.roundIndex === 1 && session.status === 'idle'}
+            aria-label="Previous phase"
+          >
+            Previous
           </button>
           <button 
             className="btn btn-secondary" 
